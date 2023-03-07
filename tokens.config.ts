@@ -33,7 +33,7 @@ export const CurrentConfig: NetworkConfig = {
   env: Environment.LOCAL,
   rpc: {
     local: 'http://localhost:8545',
-    mainnet: '1337',
+    mainnet: '',
   },
   wallet: {
     address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',

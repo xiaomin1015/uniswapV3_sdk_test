@@ -1,0 +1,6 @@
+#!/bin/bash
+export ALICE="0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+export DAI="0x6b175474e89094c44da98b954eedeac495271d0f"
+export LUCKY_USER="0xad0135af20fa82e106607257143d0060a7eb5cbf"
+export USDC_ETH_Pool=0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8
+

@@ -37,17 +37,19 @@
     "solidity-coverage": "^0.7.16",
     "ts-node": "^10.1.0",
     "typechain": "^5.1.2",
-    "typescript": "^4.5.2"
+    "typescript": "^4.9.5"
   },
   "scripts": {
     "lint": "",
     "lint:fix": "",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:chain": "anvil --chain-id 1337 --fork-url"
+    "start:chain": "anvil --chain-id 1337 --fork-url",
+    "install:chain": "curl -L https://foundry.paradigm.xyz | bash && clear && echo $0 | exec && foundryup"
   },
   "dependencies": {
     "@uniswap/sdk-core": "^3.1.1",
     "@uniswap/v3-sdk": "^3.9.0",
-    "sshpk": "^1.17.0"
+    "sshpk": "^1.17.0",
+    "yarn": "^1.22.19"
   }
 }

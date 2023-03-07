@@ -24,6 +24,7 @@ import {
   SWAP_ROUTER_ADDRESS,
   TOKEN_AMOUNT_TO_APPROVE_FOR_TRANSFER,
   WETH_ABI,
+  WETH_TOKEN,
 } from './constants'
 import { MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS } from './constants'
 import { getPoolInfo } from './pool'
@@ -39,7 +40,7 @@ export type TokenTrade = Trade<Token, Token, TradeType>
 
 // Trading Functions
 
-export async function createTrade(amountIn:number,tokenIn: Token,tokenOut: Token, poolFee: FeeAmount): Promise<TokenTrade> {
+export async function createTrade(amountIn:number, tokenIn:Token, tokenOut:Token, poolFee: FeeAmount): Promise<TokenTrade> {
   const poolInfo = await getPoolInfo(tokenIn,tokenOut,poolFee)
 
   const pool = new Pool(
@@ -58,7 +59,7 @@ export async function createTrade(amountIn:number,tokenIn: Token,tokenOut: Token
   )
 
   const amountOut = await getOutputQuote(swapRoute,amountIn,tokenIn)
-
+  console.log(`quote amountOut: ${amountOut}`)
   const uncheckedTrade = Trade.createUncheckedTrade({
     route: swapRoute,
     inputAmount: CurrencyAmount.fromRawAmount(
@@ -88,14 +89,16 @@ export async function executeTrade(
   if (!walletAddress || !provider) {
     throw new Error('Cannot execute a trade without a connected wallet')
   }
-
   // Give approval to the router to spend the token
-  const tokenApproval = await getTokenTransferApproval(tokenIn)
-
+  const tokenApproval0 = await getTokenTransferApproval(tokenIn)
+  //const tokenApproval1 = await getTokenTransferApproval(CurrentConfig.tokensETHTether.token1)
+  console.log(`Give approval to the router result: ${tokenApproval0}`)
+  
   // Fail if transfer approvals do not go through
-  if (tokenApproval !== TransactionState.Sent) {
+  if (tokenApproval0 !== TransactionState.Sent ) {
     return TransactionState.Failed
   }
+  
 
   const options: SwapOptions = {
     slippageTolerance: new Percent(50, 10_000), // 50 bips, or 0.50%
@@ -112,16 +115,17 @@ export async function executeTrade(
     from: walletAddress,
     maxFeePerGas: MAX_FEE_PER_GAS,
     maxPriorityFeePerGas: MAX_PRIORITY_FEE_PER_GAS,
+    gasLimit: 9999999
   }
 
   const res = await sendTransaction(tx)
-
+  console.log(`swap tx result: ${res}`)
   return res
 }
 
 // Helper Quoting and Pool Functions
 
-async function getOutputQuote(route: Route<Currency, Currency>,amountIn: number,tokenIn: Token) {
+async function getOutputQuote(route: Route<Currency, Currency>, amountIn: number, tokenIn: Token) {
   const provider = getProvider()
 
   if (!provider) {
@@ -175,7 +179,7 @@ export async function getTokenTransferApproval(
 
     return sendTransaction({
       ...transaction,
-      from: address,
+      from: address
     })
   } catch (e) {
     console.error(e)
@@ -184,7 +188,7 @@ export async function getTokenTransferApproval(
 }
 
 export async function swapWETH(
-  token: Token
+  ethAmount: number
 ): Promise<TransactionState> {
   const provider = getProvider()
   const address = getWalletAddress()
@@ -192,25 +196,26 @@ export async function swapWETH(
     console.log('No Provider Found')
     return TransactionState.Failed
   }
+  const ethIn = ethers.utils.parseUnits(ethAmount.toString(),"ether")
 
   try {
     const tokenContract = new ethers.Contract(
-      token.address,
+      WETH_TOKEN.address,
       WETH_ABI,
       provider
     )
 
-    const transaction = await tokenContract.populateTransaction.deposit(
-      SWAP_ROUTER_ADDRESS,
-      TOKEN_AMOUNT_TO_APPROVE_FOR_TRANSFER
-    )
-
-    return sendTransaction({
+    const transaction = await tokenContract.populateTransaction.deposit()
+    const receiptOfsendETH = await sendTransaction({
       ...transaction,
       from: address,
+      to : WETH_TOKEN.address,
+      value: ethIn,
     })
+    return receiptOfsendETH
   } catch (e) {
-    console.error(e)
+    console.error()
+    console.log("fail in sending ETH")
     return TransactionState.Failed
   }
 }

@@ -20,14 +20,12 @@ export async function getPoolInfo(token0Info: Token, token1Info: Token, poolFee:
   if (!provider) {
     throw new Error('No provider')
   }
-
   const currentPoolAddress = computePoolAddress({
     factoryAddress: POOL_FACTORY_CONTRACT_ADDRESS,
     tokenA: token0Info,
     tokenB: token1Info,
     fee: poolFee,
   })
-
   const poolContract = new ethers.Contract(
     currentPoolAddress,
     IUniswapV3PoolABI.abi,
